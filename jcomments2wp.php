@@ -1,13 +1,20 @@
 <?php
-
+ini_set("display_errors",1);
 $dbhost = "localhost";
 $dbusername = "root";
 $dbpassword = "root";
-$database = "hi2rashi_thengapatndb";
-
+$database_joomla = "hi2rashi_thengapatndb";
 $jtable_prefix = "j25_"; //Joomla Table Prefix
+$mysqli = new mysqli($dbhost, $dbusername, $dbpassword, $database_joomla); //Connection for Joomla DB
 
-$mysqli = new mysqli($dbhost, $dbusername, $dbpassword, $database);
+
+$database_wordpress = "wordpress";
+$wptable_prefix = "wp_"; //Wordpress Table Prefix
+$mysqli_wp = new mysqli($dbhost, $dbusername, $dbpassword, $database_wordpress); //Connection for Wordpress DB
+
+
+
+
 // Change character set to utf8
 $mysqli->set_charset("utf8");
 
@@ -37,55 +44,64 @@ if (!$pids) {
 
 $num = $get_total_rows;
 $i = 0;
+for($i = 0;$i < $get_total_rows; $i++){
+    $pid = $pids[$i];
 
-while ($i < $num) {
-    $pid = mysql_result($pids, $i, "object_id");
     $query = "SELECT created FROM  {$jtable_prefix}content WHERE id = " . $pid;
     echo $query;
     print "
     ";
-    $created = mysql_query($query);
+
+    $created = $mysqli->query($query);
     if (!$created) {
-        echo mysql_error();
+        echo "Record Not created...\n";
     }
-    $ct = mysql_result($created, 0, "created");
-    $query = "SELECT ID FROM  wp_posts WHERE  post_date =  '" . $ct . "' AND post_type =  'post'";
+
+    $ct = $created -> fetch_array(MYSQLI_ASSOC);
+    $query = "SELECT ID FROM  ".$database_wordpress.".{$wptable_prefix}posts WHERE  post_date =  '" . $ct['created'] . "' AND post_type =  'post'";
     echo $query;
     print "
     ";
-    $wpids = mysql_query($query);
+
+    $wpids = $mysqli_wp->query($query);
     if (!$wpids) {
-        echo mysql_error();
+        echo "wpids Error! \n";
+        continue;
     }
-    $wpid = mysql_result($wpids, 0, "ID");
+    $wpid = $wpids -> fetch_array(MYSQLI_ASSOC);
+    $wpid = $wpid["ID"];
     $query = "SELECT * FROM {$jtable_prefix}jcomments WHERE object_id = " . $pid;
     echo $query;
     print "
     ";
-    $comments = mysql_query($query);
-    $comments_count = mysql_numrows($comments);
+    $comments = $mysqli->query($query);
+    $comments_count = $comments->num_rows;
     $j = 0;
-    while ($j < $comments_count) {
-        $author = mysql_result($comments, $j, "name");
-        $email = mysql_result($comments, $j, "email");
-        $url = mysql_result($comments, $j, "homepage");
-        $ip = mysql_result($comments, $j, "ip");
-        $cdate = mysql_result($comments, $j, "date");
-        $content = mysql_result($comments, $j, "comment");
-        $content = mysql_real_escape_string($content);
 
-        $query = "INSERT INTO wp_comments (comment_post_ID, comment_author, comment_author_email, comment_author_url, comment_author_IP, comment_date, comment_date_gmt, comment_content) VALUES (" . $wpid . ", '" . $author . "', '" . $email . "', '" . $url . "', '" . $ip . "', '" . $cdate . "', '" . $date . "', '" . $content . "')";
+    while ($j < $comments_count) {
+        $comment = $comments -> fetch_array(MYSQLI_ASSOC);
+        // print_r($comment);
+        $author = $comment["name"];
+        $email = $comment["email"];
+        $url = $comment["homepage"];
+        $ip = $comment["ip"];
+        $cdate = $comment["date"];
+        $content = $comment["comment"];
+        //$content = mysqli_real_escape_string($content); //TODO: Find alternative
+
+        $query = "INSERT INTO ".$database_wordpress.".{$wptable_prefix}comments (comment_post_ID, comment_author, comment_author_email, comment_author_url, comment_author_IP, comment_date, comment_date_gmt, comment_content) VALUES (" . $wpid . ", '" . $author . "', '" . $email . "', '" . $url . "', '" . $ip . "', '" . $cdate . "', '" . $cdate . "', '" . $content . "')";
         echo $query;
         print "
     ";
-        mysql_query($query);
+        $mysqli_wp->query($query);
         $j++;
     }
-    $query = "UPDATE wp_posts SET comment_count = " . $comments_count . " WHERE ID = " . $wpid;
+    $query = "UPDATE ".$database_wordpress.".{$wptable_prefix}_posts SET comment_count = " . $comments_count . " WHERE ID = " . $wpid;
     echo $query;
     print "
     ";
-    mysql_query($query);
+    $mysqli_wp->query($query);
 
     $i++;
+
 }
