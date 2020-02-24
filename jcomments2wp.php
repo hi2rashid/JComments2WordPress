@@ -3,7 +3,7 @@ ini_set("display_errors",1);
 $dbhost = "localhost";
 $dbusername = "root";
 $dbpassword = "root";
-$database_joomla = "hi2rashi_thengapatndb";
+$database_joomla = "myjoomla25db";
 $jtable_prefix = "j25_"; //Joomla Table Prefix
 $mysqli = new mysqli($dbhost, $dbusername, $dbpassword, $database_joomla); //Connection for Joomla DB
 
