@@ -13,10 +13,14 @@ $wptable_prefix = "wp_"; //Wordpress Table Prefix
 $mysqli_wp = new mysqli($dbhost, $dbusername, $dbpassword, $database_wordpress); //Connection for Wordpress DB
 
 
-
+$print_query = false; //Set to true if you want to print the sql queries on screen
 
 // Change character set to utf8
 $mysqli->set_charset("utf8");
+$mysqli_wp->set_charset("utf8");
+echo "<br /> Joomla Character Encoding ".$mysqli->character_set_name();
+
+echo "<br /> Wordpress Character Encoding ".$mysqli_wp->character_set_name();
 
 // Check connection
 if ($mysqli->connect_errno) {
@@ -27,9 +31,11 @@ if ($mysqli->connect_errno) {
 
 
 $query = "SELECT DISTINCT object_id FROM {$jtable_prefix}jcomments";
+if($print_query) {
 echo $query;
 print "
 ";
+}
 $results = $mysqli->query($query);
 
 $pids = array();
@@ -46,11 +52,14 @@ $num = $get_total_rows;
 $i = 0;
 for($i = 0;$i < $get_total_rows; $i++){
     $pid = $pids[$i];
-
     $query = "SELECT created FROM  {$jtable_prefix}content WHERE id = " . $pid;
-    echo $query;
-    print "
-    ";
+
+    if($print_query){
+        echo $query;
+        print "
+        ";
+    }
+
 
     $created = $mysqli->query($query);
     if (!$created) {
@@ -58,8 +67,11 @@ for($i = 0;$i < $get_total_rows; $i++){
     }
 
     $ct = $created -> fetch_array(MYSQLI_ASSOC);
+
     $query = "SELECT ID FROM  ".$database_wordpress.".{$wptable_prefix}posts WHERE  post_date =  '" . $ct['created'] . "' AND post_type =  'post'";
-    echo $query;
+    if($print_query){
+        echo $query;
+    }
     print "
     ";
 
@@ -71,7 +83,9 @@ for($i = 0;$i < $get_total_rows; $i++){
     $wpid = $wpids -> fetch_array(MYSQLI_ASSOC);
     $wpid = $wpid["ID"];
     $query = "SELECT * FROM {$jtable_prefix}jcomments WHERE object_id = " . $pid;
-    echo $query;
+    if($print_query){
+        echo $query;
+    }
     print "
     ";
     $comments = $mysqli->query($query);
@@ -88,16 +102,19 @@ for($i = 0;$i < $get_total_rows; $i++){
         $cdate = $comment["date"];
         $content = $comment["comment"];
         //$content = mysqli_real_escape_string($content); //TODO: Find alternative
-
         $query = "INSERT INTO ".$database_wordpress.".{$wptable_prefix}comments (comment_post_ID, comment_author, comment_author_email, comment_author_url, comment_author_IP, comment_date, comment_date_gmt, comment_content) VALUES (" . $wpid . ", '" . $author . "', '" . $email . "', '" . $url . "', '" . $ip . "', '" . $cdate . "', '" . $cdate . "', '" . $content . "')";
-        echo $query;
+        if($print_query){
+            echo $query;
+        }
         print "
     ";
         $mysqli_wp->query($query);
         $j++;
     }
     $query = "UPDATE ".$database_wordpress.".{$wptable_prefix}_posts SET comment_count = " . $comments_count . " WHERE ID = " . $wpid;
-    echo $query;
+    if($print_query){
+        echo $query;
+    }
     print "
     ";
     $mysqli_wp->query($query);
