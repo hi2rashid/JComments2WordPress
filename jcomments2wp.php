@@ -32,9 +32,7 @@ if ($mysqli->connect_errno) {
 
 $query = "SELECT DISTINCT object_id FROM {$jtable_prefix}jcomments";
 if($print_query) {
-echo $query;
-print "
-";
+    echo $query."\n";
 }
 $results = $mysqli->query($query);
 
@@ -55,9 +53,7 @@ for($i = 0;$i < $get_total_rows; $i++){
     $query = "SELECT created FROM  {$jtable_prefix}content WHERE id = " . $pid;
 
     if($print_query){
-        echo $query;
-        print "
-        ";
+        echo $query."\n";
     }
 
 
@@ -70,10 +66,8 @@ for($i = 0;$i < $get_total_rows; $i++){
 
     $query = "SELECT ID FROM  ".$database_wordpress.".{$wptable_prefix}posts WHERE  post_date =  '" . $ct['created'] . "' AND post_type =  'post'";
     if($print_query){
-        echo $query;
+        echo $query."\n";
     }
-    print "
-    ";
 
     $wpids = $mysqli_wp->query($query);
     if (!$wpids) {
@@ -84,10 +78,9 @@ for($i = 0;$i < $get_total_rows; $i++){
     $wpid = $wpid["ID"];
     $query = "SELECT * FROM {$jtable_prefix}jcomments WHERE object_id = " . $pid;
     if($print_query){
-        echo $query;
+        echo $query."\n";
     }
-    print "
-    ";
+
     $comments = $mysqli->query($query);
     $comments_count = $comments->num_rows;
     $j = 0;
@@ -104,19 +97,16 @@ for($i = 0;$i < $get_total_rows; $i++){
         //$content = mysqli_real_escape_string($content); //TODO: Find alternative
         $query = "INSERT INTO ".$database_wordpress.".{$wptable_prefix}comments (comment_post_ID, comment_author, comment_author_email, comment_author_url, comment_author_IP, comment_date, comment_date_gmt, comment_content) VALUES (" . $wpid . ", '" . $author . "', '" . $email . "', '" . $url . "', '" . $ip . "', '" . $cdate . "', '" . $cdate . "', '" . $content . "')";
         if($print_query){
-            echo $query;
+            echo $query."\n";
         }
-        print "
-    ";
+       
         $mysqli_wp->query($query);
         $j++;
     }
     $query = "UPDATE ".$database_wordpress.".{$wptable_prefix}_posts SET comment_count = " . $comments_count . " WHERE ID = " . $wpid;
     if($print_query){
-        echo $query;
+        echo $query."\n";
     }
-    print "
-    ";
     $mysqli_wp->query($query);
 
     $i++;
