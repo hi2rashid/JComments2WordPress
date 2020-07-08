@@ -75,6 +75,9 @@ for ($i = 0; $i < $get_total_rows; $i++) {
         continue;
     }
     $wpid  = $wpids->fetch_array(MYSQLI_ASSOC);
+    if(!isset($wpid["ID"])) {
+        continue;
+    }
     $wpid  = $wpid["ID"];
     $query = "SELECT * FROM {$jtable_prefix}jcomments WHERE object_id = " . $pid;
     if ($print_query) {
